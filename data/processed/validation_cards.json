@@ -1,0 +1,50 @@
+[
+  {
+    "id": "val-1",
+    "trade": "Automobile Technician (Trade Code: ITI-AUTO-03)",
+    "proposedTitle": "Module: EV Powertrain & High-Voltage Battery Safety (48 Hours)",
+    "submittedBy": "MahaSkill AI Curriculum Steering Committee",
+    "rationale": "Aligns vocational trainees with Maharashtra EV Policy 2025. Adds mandatory hands-on diagnostics for 400V battery systems, pre-charge resistors, and CAN-bus telemetry.",
+    "keyCompetencies": [
+      "NFPA 70E & ISO 6469 Electrical Safety Compliance",
+      "Cell Balancing & Thermal Runaway Mitigation Protocols",
+      "Regenerative Braking Power Inverter Troubleshooting"
+    ],
+    "employerEndorsements": 142,
+    "employerObjections": 6,
+    "targetBatchSize": 4200,
+    "industryPartners": ["Tata Motors EV", "Mahindra Electric", "Bajaj Auto", "KPIT Technologies"]
+  },
+  {
+    "id": "val-2",
+    "trade": "Information Technology (Trade Code: ITI-COPA-01)",
+    "proposedTitle": "Module: Full-Stack JavaScript & Cloud Deployment (60 Hours)",
+    "submittedBy": "Directorate of Vocational Education & Training (DVET)",
+    "rationale": "Replaces obsolete Visual Basic 6.0 and desktop Access forms with modern React, Express.js REST APIs, and Docker/Cloud deployment practices.",
+    "keyCompetencies": [
+      "Responsive React Component Architecture",
+      "Secure REST APIs with JWT & PostgreSQL",
+      "Git Branching & GitHub CI/CD Pipeline Automation"
+    ],
+    "employerEndorsements": 218,
+    "employerObjections": 11,
+    "targetBatchSize": 6800,
+    "industryPartners": ["Infosys Pune", "Persistent Systems", "TCS", "Jio Platforms"]
+  },
+  {
+    "id": "val-3",
+    "trade": "Electrical & Electronics (Trade Code: ITI-ELEC-05)",
+    "proposedTitle": "Module: Rooftop Solar Grid-Tie Inverter & Net Metering (40 Hours)",
+    "submittedBy": "MahaUrja & Maharashtra Energy Development Agency",
+    "rationale": "Addresses massive rooftop solar adoption in Nagpur, Nashik, and Solapur under PM Surya Ghar Muft Bijli Yojana with certified grid-tied technician training.",
+    "keyCompetencies": [
+      "Solar PV String Sizing & MPPT Inverter Synchronization",
+      "Net Metering Bi-Directional Disconnect & Earthing",
+      "MNRE & MSEDCL Grid Safety Standards"
+    ],
+    "employerEndorsements": 98,
+    "employerObjections": 4,
+    "targetBatchSize": 3100,
+    "industryPartners": ["Tata Power Solar", "Adani Solar", "Waaree Energies", "MSEDCL"]
+  }
+]

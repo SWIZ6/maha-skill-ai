@@ -1,0 +1,13 @@
+{
+    "trade_name": "Computer Operator and Programming Assistant (COPA)",
+    "trade_code": "ITI-COPA-01",
+    "framework": "NSQF Level 4",
+    "modules": [
+        "Computer Fundamentals and Operating Systems",
+        "Legacy Visual Basic 6.0 and Desktop Forms",
+        "FoxPro and dBase Database Administration",
+        "HTML 4.01 and Table Based Web Page Design",
+        "Manual FTP and Dial-Up Server Configuration",
+        "Basic Office Productivity Tools"
+    ]
+}

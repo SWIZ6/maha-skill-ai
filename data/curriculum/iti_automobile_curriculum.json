@@ -1,0 +1,12 @@
+{
+    "trade_name": "Mechanic Motor Vehicle / Automobile Technician",
+    "trade_code": "ITI-AUTO-03",
+    "framework": "NSQF Level 4",
+    "modules": [
+        "Carburetor Overhaul and Mechanical Jet Timing",
+        "Conventional Dynamo and Mechanical Relay Rewinding",
+        "BS-II and BS-III Mechanical Exhaust Analysis",
+        "Internal Combustion Engine Dismantling and Assembly",
+        "Manual Clutch and Gearbox Overhauling"
+    ]
+}

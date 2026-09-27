@@ -1,0 +1,54 @@
+[
+  {
+    "id": "sub-101",
+    "companyName": "Tata Motors Passenger EV Ltd",
+    "sector": "Automotive & EV",
+    "district": "Pune",
+    "role": "Battery Assembly & Testing Technician",
+    "skills": ["BMS Testing", "CAN-bus Scanning", "High Voltage Safety", "Thermal Inspection"],
+    "openings": 180,
+    "proficiencyRequired": "Intermediate",
+    "timeline": "Next 30 Days",
+    "submittedAt": "2 hours ago",
+    "verified": true
+  },
+  {
+    "id": "sub-102",
+    "companyName": "Persistent Systems",
+    "sector": "IT & Software Services",
+    "district": "Pune",
+    "role": "Junior Web Application Support Engineer",
+    "skills": ["Node.js", "React Basics", "PostgreSQL", "Git"],
+    "openings": 95,
+    "proficiencyRequired": "Beginner",
+    "timeline": "Q3 2026",
+    "submittedAt": "5 hours ago",
+    "verified": true
+  },
+  {
+    "id": "sub-103",
+    "companyName": "Bharat Forge Ltd",
+    "sector": "Heavy Engineering & Defense",
+    "district": "Chhatrapati Sambhajinagar",
+    "role": "5-Axis CNC Precision Setter",
+    "skills": ["Fanuc G-Code", "Tool Offset Calibration", "CMM Inspection"],
+    "openings": 45,
+    "proficiencyRequired": "Advanced",
+    "timeline": "Next 60 Days",
+    "submittedAt": "1 day ago",
+    "verified": true
+  },
+  {
+    "id": "sub-104",
+    "companyName": "Amazon Logistics Fulfillment",
+    "sector": "Logistics & Warehousing",
+    "district": "Nagpur (MIHAN)",
+    "role": "Automated Sorting & Conveyor Technician",
+    "skills": ["PLC Troubleshooting", "Sensor Calibration", "Hydraulics"],
+    "openings": 120,
+    "proficiencyRequired": "Intermediate",
+    "timeline": "Immediate",
+    "submittedAt": "2 days ago",
+    "verified": true
+  }
+]

@@ -1,0 +1,11 @@
+{
+    "trade_name": "Mechanic Machine Tool Maintenance / CNC Operator",
+    "framework": "NSQF Level 4",
+    "modules": [
+        "Bench Working and Fitting",
+        "Conventional Lathe and Milling Operation",
+        "Basic Hydraulics and Pneumatics",
+        "Preventive Maintenance of Machine Tools",
+        "Engineering Drawing Interpretation"
+    ]
+}
