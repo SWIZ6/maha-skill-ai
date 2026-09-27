@@ -34,6 +34,16 @@ import {
   Sliders,
   ChevronRight,
   ShieldCheck,
+  AlertTriangle,
+  Zap,
+  Target,
+  Plus,
+  X,
+  Layers,
+  BookOpen,
+  Cpu,
+  Flame,
+  Search,
 } from "lucide-react";
 import {
   Radar,
@@ -46,6 +56,31 @@ import {
   Legend,
 } from "recharts";
 
+const POPULAR_SKILL_SUGGESTIONS = [
+  "Lathe",
+  "Milling",
+  "AutoCAD",
+  "Bench Working",
+  "Hydraulics",
+  "Pneumatics",
+  "Preventive Maintenance",
+  "Welding",
+  "CNC",
+  "Fanuc",
+  "GD&T",
+  "VMC",
+  "G-code",
+  "PLC",
+  "Python",
+  "React",
+];
+
+const AVAILABLE_COURSES = [
+  { id: "machinist", name: "ITI Machinist", title: "ITI Machinist / CNC Operator (ITI-MECH-07)" },
+  { id: "copa", name: "ITI COPA", title: "ITI Computer Operator & Programming (COPA)" },
+  { id: "automobile", name: "ITI Automobile", title: "ITI Mechanic Motor Vehicle / Automobile" },
+];
+
 export const CandidateView: React.FC = () => {
   const {
     candidateRole,
@@ -53,10 +88,32 @@ export const CandidateView: React.FC = () => {
     enrolledCourses,
     enrollInCourse,
     showToast,
+    candidateSkills,
+    setCandidateSkills,
+    candidateCourse,
+    setCandidateCourse,
+    candidateAnalysis,
+    isAnalyzingCandidate,
+    refreshCandidateAnalysis,
+    selectedDistrict,
   } = useApp();
 
   const [selectedCourseForModal, setSelectedCourseForModal] = useState<any | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [newSkillInput, setNewSkillInput] = useState("");
+
+  const handleAddSkill = (skill: string) => {
+    const trimmed = skill.trim();
+    if (trimmed && !candidateSkills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
+      setCandidateSkills((prev) => [...prev, trimmed]);
+      setNewSkillInput("");
+      showToast(`Added "${trimmed}" to your skill profile.`);
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setCandidateSkills((prev) => prev.filter((s) => s.toLowerCase() !== skillToRemove.toLowerCase()));
+  };
 
   // Dynamic skill levels that the student can tweak to simulate upskilling
   const [userSkillLevels, setUserSkillLevels] = useState<Record<string, number>>({});
@@ -188,6 +245,382 @@ export const CandidateView: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* ============================================================== */}
+      {/* 🚀 AI SKILL & CURRICULUM GAP INTELLIGENCE (FEATURES 1, 2, 3) */}
+      {/* ============================================================== */}
+      <div className="space-y-4">
+        {/* Controls Card: Course, District & User Skills Input */}
+        <Card className="bg-white border border-slate-200/90 shadow-xs overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-slate-50 via-indigo-50/30 to-purple-50/30 border-b border-slate-200/70 pb-3.5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-indigo-100 text-indigo-700">
+                    <Target className="w-4 h-4" />
+                  </span>
+                  <CardTitle className="text-base text-slate-900 font-bold">
+                    Student Skill Gap & Curriculum Intelligence
+                  </CardTitle>
+                  <Badge className="bg-indigo-100 text-indigo-800 text-[10px] font-semibold border-indigo-200">
+                    Live NLP Engine
+                  </Badge>
+                </div>
+                <CardDescription className="text-xs text-slate-500 mt-1">
+                  Cross-referencing your course syllabus & skill profile with real-time employer postings from <code className="font-mono text-[11px] text-indigo-800 bg-indigo-50 px-1 py-0.5 rounded">data/processed/parsed_skills.json</code>
+                </CardDescription>
+              </div>
+
+              {/* Course Selector Dropdown */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-slate-500 hidden sm:inline">Enrolled Course:</span>
+                <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-xl border border-slate-200 shadow-2xs">
+                  <BookOpen className="w-3.5 h-3.5 text-indigo-600 ml-1" />
+                  <select
+                    value={candidateCourse}
+                    onChange={(e) => setCandidateCourse(e.target.value)}
+                    className="text-xs font-semibold bg-transparent border-0 text-slate-800 focus:outline-none pr-2 cursor-pointer"
+                  >
+                    {AVAILABLE_COURSES.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-4 sm:p-5 space-y-4">
+            {/* Student Current Skills Input & Chips */}
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-blue-600" />
+                  Your Current Acquired Skills ({candidateSkills.length}):
+                </label>
+                <span className="text-[11px] text-slate-400">
+                  Click a skill to remove • Type or click suggestions below to add
+                </span>
+              </div>
+
+              {/* Active Skill Tags */}
+              <div className="flex flex-wrap items-center gap-1.5 min-h-[42px] p-2 bg-slate-50 rounded-xl border border-slate-200 mb-2.5">
+                {candidateSkills.map((skill) => (
+                  <span
+                    key={skill}
+                    onClick={() => handleRemoveSkill(skill)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800 hover:bg-red-100 hover:text-red-700 cursor-pointer transition-colors group"
+                    title="Click to remove"
+                  >
+                    <span>{skill}</span>
+                    <X className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+                  </span>
+                ))}
+
+                {/* Input for new skill */}
+                <div className="flex items-center gap-1 ml-auto">
+                  <input
+                    type="text"
+                    value={newSkillInput}
+                    onChange={(e) => setNewSkillInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddSkill(newSkillInput);
+                      }
+                    }}
+                    placeholder="+ Add custom skill..."
+                    className="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 w-36"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleAddSkill(newSkillInput)}
+                    disabled={!newSkillInput.trim()}
+                    className="h-7 px-2 text-xs"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Quick Suggestions Chips */}
+              <div className="flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
+                <span className="font-medium text-slate-600 mr-1">Suggested tools:</span>
+                {POPULAR_SKILL_SUGGESTIONS.filter((s) => !candidateSkills.some(cs => cs.toLowerCase() === s.toLowerCase())).slice(0, 10).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => handleAddSkill(s)}
+                    className="px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 text-slate-600 transition-colors"
+                  >
+                    + {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ============================================================== */}
+        {/* FEATURE 2: COURSE GAP ALERT                                   */}
+        {/* ============================================================== */}
+        {candidateAnalysis?.course_gap_alert && (
+          <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border-2 border-amber-400/80 rounded-2xl p-4 sm:p-5 shadow-xs transition-all">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500 text-white shadow-xs shrink-0 mt-0.5">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge className="bg-amber-100 text-amber-900 border-amber-300 text-[10px] font-bold uppercase tracking-wider">
+                      Feature 2 • Course Gap Alert
+                    </Badge>
+                    <span className="text-xs text-amber-800 font-medium">
+                      Curriculum Verification: {candidateAnalysis.course_gap_alert.course_name}
+                    </span>
+                  </div>
+
+                  {/* Core Alert Message */}
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-950 tracking-tight flex items-center gap-2">
+                    <span>{candidateAnalysis.course_gap_alert.alert_message}</span>
+                  </h3>
+
+                  {/* Detailed Explanation */}
+                  <p className="text-xs text-slate-700 mt-1.5 leading-relaxed">
+                    {candidateAnalysis.course_gap_alert.detailed_contrast}
+                  </p>
+
+                  {/* Missing Tools vs Taught Modules Tags */}
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-bold text-red-700 flex items-center gap-1">
+                      <Flame className="w-3.5 h-3.5 text-red-500" />
+                      Critical Market Tools Missing in Syllabus:
+                    </span>
+                    {candidateAnalysis.course_gap_alert.essential_missing_tools.map((tool) => (
+                      <span
+                        key={tool.skill}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-red-100 text-red-800 border border-red-200"
+                      >
+                        <span>{tool.skill}</span>
+                        <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-white text-red-700">
+                          {tool.frequency} postings
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="shrink-0 self-start md:self-center">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const firstMissing = candidateAnalysis.course_gap_alert.essential_missing_tools[0]?.skill;
+                    if (firstMissing) handleAddSkill(firstMissing);
+                  }}
+                  className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs whitespace-nowrap"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Add Missing Tools to My Plan
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2-Column Split: Feature 1 (Gapped Skill Knowledge) & Feature 3 (Future Skill Prediction) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* ============================================================== */}
+          {/* FEATURE 1: GAPPED SKILL KNOWLEDGE (7 Columns)                 */}
+          {/* ============================================================== */}
+          <div className="lg:col-span-7 space-y-4">
+            <Card className="bg-white border border-slate-200/90 shadow-xs h-full flex flex-col justify-between">
+              <div>
+                <CardHeader className="border-b border-slate-100 pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <CardTitle className="text-base text-slate-900 font-bold">
+                          Gapped Skill Knowledge Analyzer
+                        </CardTitle>
+                        <Badge className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border-emerald-200">
+                          Feature 1
+                        </Badge>
+                      </div>
+                      <CardDescription className="text-xs text-slate-500 mt-1">
+                        Filtered by <strong className="text-slate-800">{selectedDistrict === "All Districts" ? "Pune & Maharashtra" : selectedDistrict}</strong> • Aggregated from active employer postings
+                      </CardDescription>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-[11px] text-slate-400 block">Market Readiness</span>
+                      <span className="text-base font-bold font-mono text-emerald-600">
+                        {candidateAnalysis?.gapped_skill_knowledge?.readiness_score || 0}%
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-4 sm:p-5 space-y-4">
+                  {/* Part A: Matched Skills (user_skills ∩ employer_demanded_skills) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        Matched Market Competencies (user_skills ∩ employer_demanded):
+                      </span>
+                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                        {candidateAnalysis?.gapped_skill_knowledge?.matched_skills?.length || 0} skills aligned
+                      </span>
+                    </div>
+
+                    {candidateAnalysis?.gapped_skill_knowledge?.matched_skills && candidateAnalysis.gapped_skill_knowledge.matched_skills.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {candidateAnalysis.gapped_skill_knowledge.matched_skills.map((item) => (
+                          <div
+                            key={item.skill}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>{item.skill}</span>
+                            <span className="text-[10px] font-mono bg-white px-1.5 py-0.2 rounded text-emerald-700 border border-emerald-100">
+                              {item.frequency} jobs
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                        No overlap yet between your skills and top employer requirements. Click suggested skills below to bridge the gap!
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Part B: Deficit (The Gap): employer_demanded_skills - user_skills (sorted by count) */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <Flame className="w-4 h-4 text-orange-600" />
+                        Deficit Skills (The Gap: employer_demanded - user_skills):
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        Ranked by hiring frequency
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {candidateAnalysis?.gapped_skill_knowledge?.deficit_skills?.slice(0, 6).map((item, idx) => (
+                        <div
+                          key={item.skill}
+                          className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-orange-300 transition-all"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-5 h-5 rounded-md bg-orange-100 text-orange-800 font-bold text-[11px] flex items-center justify-center shrink-0">
+                              #{idx + 1}
+                            </span>
+                            <div>
+                              <h4 className="text-xs font-bold text-slate-900">
+                                {item.skill}
+                              </h4>
+                              <span className="text-[10px] text-slate-500">
+                                Demanded in <strong className="text-slate-800 font-mono">{item.frequency}</strong> postings ({item.marketSharePercent}% of cluster)
+                              </span>
+                            </div>
+                          </div>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAddSkill(item.skill)}
+                            className="text-[11px] h-7 px-2.5 bg-white hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300 text-slate-700"
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                            Acquire Skill
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+          </div>
+
+          {/* ============================================================== */}
+          {/* FEATURE 3: FUTURE SKILL PREDICTION (5 Columns)                */}
+          {/* ============================================================== */}
+          <div className="lg:col-span-5 space-y-4">
+            <Card className="bg-white border border-slate-200/90 shadow-xs h-full flex flex-col justify-between">
+              <div>
+                <CardHeader className="border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-lg bg-purple-100 text-purple-700">
+                      <Zap className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-base text-slate-900 font-bold">
+                          Future Skill Prediction
+                        </CardTitle>
+                        <Badge className="bg-purple-50 text-purple-700 text-[10px] font-semibold border-purple-200">
+                          Feature 3
+                        </Badge>
+                      </div>
+                      <CardDescription className="text-xs text-slate-500">
+                        Higher-tier emerging tech in Maharashtra industrial clusters
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-4 sm:p-5 space-y-3.5">
+                  {candidateAnalysis?.future_skill_predictions?.slice(0, 3).map((pred) => (
+                    <div
+                      key={pred.badge}
+                      className="p-3.5 rounded-xl border border-purple-200/80 bg-gradient-to-r from-purple-50/50 to-indigo-50/30 hover:border-purple-300 transition-all space-y-2"
+                    >
+                      {/* Prediction Badge */}
+                      <div className="flex items-start gap-2">
+                        <span className="w-2 h-2 rounded-full bg-purple-600 mt-1.5 shrink-0"></span>
+                        <div className="flex-1">
+                          <p className="text-xs font-extrabold text-purple-950 leading-snug">
+                            {pred.badge}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Cluster & Impact Tags */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        <Badge variant="outline" className="text-[10px] bg-white text-slate-700 border-slate-200">
+                          📍 {pred.cluster.split("&")[0]}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-800 border-emerald-200 font-bold">
+                          📈 {pred.advantage}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-800 border-amber-200">
+                          💰 {pred.salary_premium}
+                        </Badge>
+                      </div>
+
+                      {/* Rationale */}
+                      <p className="text-[11px] text-slate-600 italic leading-normal">
+                        "{pred.reason}"
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* 1. SKILL GAP ANALYZER & RADAR CHART (7 Cols on Desktop) */}

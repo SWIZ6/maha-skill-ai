@@ -20,6 +20,7 @@ import {
   BackendHealth,
   LiveGapAnalysis,
   LiveJobItem,
+  CandidateAnalysisResult,
 } from "@/lib/api";
 
 export type RoleType = "policymaker" | "principal" | "employer" | "candidate";
@@ -53,6 +54,15 @@ interface AppContextType {
   refreshBackendData: () => Promise<void>;
   triggerJobIngestion: (query?: string) => Promise<boolean>;
   fetchTradeGapAnalysis: (tradeId: string) => Promise<void>;
+
+  // Candidate Intelligence (Gapped Skill Knowledge, Course Gap Alert, Future Predictions)
+  candidateSkills: string[];
+  setCandidateSkills: React.Dispatch<React.SetStateAction<string[]>>;
+  candidateCourse: string;
+  setCandidateCourse: (course: string) => void;
+  candidateAnalysis: CandidateAnalysisResult | null;
+  isAnalyzingCandidate: boolean;
+  refreshCandidateAnalysis: (skills?: string[], course?: string, district?: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -74,6 +84,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [liveJobs, setLiveJobs] = useState<LiveJobItem[]>([]);
   const [liveGapData, setLiveGapData] = useState<LiveGapAnalysis | null>(null);
   const [isLoadingBackend, setIsLoadingBackend] = useState<boolean>(false);
+
+  // Candidate Analysis state
+  const [candidateSkills, setCandidateSkills] = useState<string[]>(["Lathe", "AutoCAD"]);
+  const [candidateCourse, setCandidateCourse] = useState<string>("ITI Machinist");
+  const [candidateAnalysis, setCandidateAnalysis] = useState<CandidateAnalysisResult | null>(null);
+  const [isAnalyzingCandidate, setIsAnalyzingCandidate] = useState<boolean>(false);
+
+  const refreshCandidateAnalysis = useCallback(
+    async (skills?: string[], course?: string, district?: string) => {
+      setIsAnalyzingCandidate(true);
+      try {
+        const skillsToUse = skills || candidateSkills;
+        const courseToUse = course || candidateCourse;
+        const districtToUse =
+          district || (selectedDistrict === "All Districts" ? "Pune" : selectedDistrict);
+
+        const result = await api.getCandidateAnalysis(skillsToUse, courseToUse, districtToUse);
+        if (result) {
+          setCandidateAnalysis(result);
+        }
+      } catch (err) {
+        console.error("Candidate analysis refresh error:", err);
+      } finally {
+        setIsAnalyzingCandidate(false);
+      }
+    },
+    [candidateSkills, candidateCourse, selectedDistrict]
+  );
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -134,6 +172,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     fetchTradeGapAnalysis(selectedTradeDiff);
   }, [selectedTradeDiff, fetchTradeGapAnalysis]);
+
+  // Trigger candidate analysis when skills, course, or district changes
+  useEffect(() => {
+    refreshCandidateAnalysis();
+  }, [refreshCandidateAnalysis]);
 
   // Trigger live job ingestion
   const triggerJobIngestion = async (query?: string): Promise<boolean> => {
@@ -255,6 +298,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         refreshBackendData,
         triggerJobIngestion,
         fetchTradeGapAnalysis,
+        candidateSkills,
+        setCandidateSkills,
+        candidateCourse,
+        setCandidateCourse,
+        candidateAnalysis,
+        isAnalyzingCandidate,
+        refreshCandidateAnalysis,
       }}
     >
       {children}

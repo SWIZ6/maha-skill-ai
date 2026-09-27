@@ -36,6 +36,47 @@ export interface BackendHealth {
   };
 }
 
+export interface CandidateAnalysisResult {
+  success: boolean;
+  python_online?: boolean;
+  query: {
+    user_skills: string[];
+    course_name: string;
+    district: string;
+  };
+  gapped_skill_knowledge: {
+    district: string;
+    total_jobs_analyzed: number;
+    readiness_score: number;
+    matched_skills_count: number;
+    deficit_skills_count: number;
+    matched_skills: { skill: string; frequency: number; marketSharePercent: number }[];
+    deficit_skills: { skill: string; frequency: number; marketSharePercent: number }[];
+    top_demanded_skills: { skill: string; count: number }[];
+  };
+  course_gap_alert: {
+    course_name: string;
+    trade_code: string;
+    framework: string;
+    curriculum_modules: string[];
+    essential_missing_tools: { skill: string; frequency: number; marketSharePercent: number }[];
+    covered_tools: { skill: string; frequency: number; marketSharePercent: number }[];
+    alert_message: string;
+    detailed_contrast: string;
+  };
+  future_skill_predictions: {
+    target_skills: string[];
+    badge: string;
+    headline: string;
+    cluster: string;
+    advantage: string;
+    salary_premium: string;
+    sector: string;
+    domain: string;
+    reason: string;
+  }[];
+}
+
 export const api = {
   async getHealth(): Promise<BackendHealth> {
     try {
@@ -186,6 +227,29 @@ export const api = {
       return data.appliedPatches || [diffId];
     } catch {
       return [diffId];
+    }
+  },
+
+  async getCandidateAnalysis(
+    userSkills: string[],
+    courseName: string,
+    district?: string
+  ): Promise<CandidateAnalysisResult | null> {
+    try {
+      const res = await fetch("/api/candidate/analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_skills: userSkills,
+          course_name: courseName,
+          district: district || "Pune",
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to fetch candidate analysis");
+      return await res.json();
+    } catch (err) {
+      console.error("Error in getCandidateAnalysis:", err);
+      return null;
     }
   },
 };

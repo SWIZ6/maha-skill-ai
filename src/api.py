@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from src.fetch_jobs import fetch_market_postings
 from src.extract_skills import extract_skills, SKILL_TAXONOMY
 from src.gap_analysis import run_gap_analysis
+from src.candidate_analysis import run_full_candidate_analysis
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
@@ -74,6 +75,12 @@ class VoteRequest(BaseModel):
 
 class PatchRequest(BaseModel):
     diffId: str
+
+
+class CandidateAnalysisRequest(BaseModel):
+    user_skills: List[str] = ["Lathe", "AutoCAD"]
+    course_name: Optional[str] = "ITI Machinist"
+    district: Optional[str] = "Pune"
 
 
 @app.get("/")
@@ -268,6 +275,33 @@ def apply_patch_endpoint(payload: PatchRequest):
         "message": "Patch already active.",
         "appliedPatches": patches,
     }
+
+
+@app.post("/api/candidate/analysis")
+def candidate_analysis_post_endpoint(payload: CandidateAnalysisRequest):
+    return run_full_candidate_analysis(
+        user_skills=payload.user_skills,
+        course_name=payload.course_name or "ITI Machinist",
+        district=payload.district or "Pune",
+    )
+
+
+@app.get("/api/candidate/analysis")
+def candidate_analysis_get_endpoint(
+    skills: Optional[str] = Query("Lathe,AutoCAD"),
+    course: Optional[str] = Query("ITI Machinist"),
+    district: Optional[str] = Query("Pune"),
+):
+    skill_list = (
+        [s.strip() for s in skills.split(",") if s.strip()]
+        if skills
+        else ["Lathe", "AutoCAD"]
+    )
+    return run_full_candidate_analysis(
+        user_skills=skill_list,
+        course_name=course or "ITI Machinist",
+        district=district or "Pune",
+    )
 
 
 if __name__ == "__main__":
