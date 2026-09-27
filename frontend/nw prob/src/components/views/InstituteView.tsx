@@ -280,23 +280,26 @@ export const InstituteView: React.FC = () => {
 
       {/* Navigation Tabs for Diff vs Infrastructure vs Trainers */}
       <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)}>
-        <TabsList className="bg-slate-200/80 p-1 w-full sm:w-auto flex">
-          <TabsTrigger value="diff" className="flex-1 sm:flex-initial flex items-center gap-2">
-            <GitCompare className="w-4 h-4" />
-            <span>The "Diff" Viewer</span>
-            <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 bg-slate-300/60">
+        <TabsList className="bg-slate-200/80 p-1 w-full sm:w-auto flex overflow-x-auto no-scrollbar">
+          <TabsTrigger value="diff" className="flex-1 sm:flex-initial flex items-center gap-1.5 sm:gap-2 shrink-0 text-xs sm:text-sm">
+            <GitCompare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">The "Diff" Viewer</span>
+            <span className="sm:hidden">Diff</span>
+            <Badge variant="secondary" className="ml-0.5 sm:ml-1 text-[10px] px-1 sm:px-1.5 py-0 bg-slate-300/60">
               Core
             </Badge>
           </TabsTrigger>
-          <TabsTrigger value="infrastructure" className="flex-1 sm:flex-initial flex items-center gap-2">
-            <Wrench className="w-4 h-4" />
-            <span>Hardware & Lab Needs</span>
-            <span className="text-xs text-slate-400">({currentTrade.infrastructureRequired.length})</span>
+          <TabsTrigger value="infrastructure" className="flex-1 sm:flex-initial flex items-center gap-1.5 sm:gap-2 shrink-0 text-xs sm:text-sm">
+            <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Hardware & Lab Needs</span>
+            <span className="sm:hidden">Lab Needs</span>
+            <span className="text-[11px] sm:text-xs text-slate-400">({currentTrade.infrastructureRequired.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="trainers" className="flex-1 sm:flex-initial flex items-center gap-2">
-            <GraduationCap className="w-4 h-4" />
-            <span>Trainer Upskilling Paths</span>
-            <span className="text-xs text-slate-400">({currentTrade.trainerUpskilling.length})</span>
+          <TabsTrigger value="trainers" className="flex-1 sm:flex-initial flex items-center gap-1.5 sm:gap-2 shrink-0 text-xs sm:text-sm">
+            <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Trainer Upskilling Paths</span>
+            <span className="sm:hidden">Trainers</span>
+            <span className="text-[11px] sm:text-xs text-slate-400">({currentTrade.trainerUpskilling.length})</span>
           </TabsTrigger>
         </TabsList>
 

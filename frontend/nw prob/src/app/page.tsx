@@ -30,7 +30,7 @@ export default function Home() {
         />
 
         {/* Dynamic Persona Dashboard Viewport */}
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 min-w-0 max-w-full pb-20 md:pb-8">
+        <main className="flex-1 p-2.5 sm:p-6 lg:p-8 min-w-0 max-w-full pb-28 md:pb-8">
           {role === "policymaker" && <PolicymakerView />}
           {role === "principal" && <InstituteView />}
           {role === "employer" && <EmployerView />}

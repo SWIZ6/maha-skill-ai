@@ -23,7 +23,13 @@ export const metadata: Metadata = {
     "Maharashtra Skill Development",
   ],
   authors: [{ name: "Maharashtra State Innovation Society" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#0f172a",
 };
 
 export default function RootLayout({

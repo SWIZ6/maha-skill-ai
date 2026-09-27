@@ -89,67 +89,72 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu, mobileMenuOp
       )}
 
       {/* Top Govt Bar */}
-      <div className="bg-slate-950 text-slate-300 px-4 py-1.5 text-[11px] border-b border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="bg-slate-950 text-slate-300 px-3 sm:px-4 py-1.5 text-[11px] border-b border-slate-800 flex items-center justify-between gap-2 overflow-hidden">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           {/* Subtle Tricolor indicator */}
-          <div className="flex h-2.5 w-5 rounded-xs overflow-hidden">
+          <div className="flex h-2.5 w-4 sm:w-5 rounded-xs overflow-hidden shrink-0">
             <span className="w-1/3 bg-[#FF9933]"></span>
             <span className="w-1/3 bg-white"></span>
             <span className="w-1/3 bg-[#138808]"></span>
           </div>
-          <span className="font-semibold text-slate-200">
-            महाराष्ट्र शासन | Government of Maharashtra
-          </span>
-          <span className="hidden sm:inline text-slate-400">
-            • Maharashtra State Innovation Society (MSInS)
+          <span className="font-semibold text-slate-200 truncate text-[10px] sm:text-[11px]">
+            महाराष्ट्र शासन <span className="hidden sm:inline">| Govt of Maharashtra</span>
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
             onClick={() => refreshBackendData()}
             disabled={isLoadingBackend}
-            className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium transition-all bg-slate-900 border border-slate-700 hover:border-slate-500 cursor-pointer"
+            className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-medium transition-all bg-slate-900 border border-slate-700 hover:border-slate-500 cursor-pointer"
             title="Click to re-verify backend connectivity"
           >
             <span
-              className={`w-2 h-2 rounded-full ${
+              className={`w-2 h-2 rounded-full shrink-0 ${
                 backendConnected ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
               }`}
             ></span>
             <span className={backendConnected ? "text-emerald-300 font-semibold" : "text-amber-300"}>
-              {backendConnected
-                ? `Python Backend Live (:8000) • ${backendHealth?.live_data?.raw_jobs_count || 10} Jobs Synced`
-                : "Backend: Direct Cache Mode"}
+              {backendConnected ? (
+                <>
+                  <span className="hidden sm:inline">Python Live (:8000) • {backendHealth?.live_data?.raw_jobs_count || 10} Jobs</span>
+                  <span className="sm:hidden">Live :8000</span>
+                </>
+              ) : (
+                <>
+                  <span className="hidden sm:inline">Backend: Direct Cache Mode</span>
+                  <span className="sm:hidden">Cache</span>
+                </>
+              )}
             </span>
             {isLoadingBackend && <span className="animate-spin text-slate-400">↻</span>}
           </button>
-          <span className="text-slate-400 font-mono text-[10px] hidden sm:inline">v3.2-prod</span>
+          <span className="text-slate-400 font-mono text-[10px] hidden md:inline">v3.2-prod</span>
         </div>
       </div>
 
       {/* Main Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           {/* Logo & Platform Name */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={onToggleMobileMenu}
-              className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              className="md:hidden p-2 -ml-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 min-w-[38px] min-h-[38px] flex items-center justify-center shrink-0"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-950 via-slate-900 to-blue-900 flex items-center justify-center text-white shadow-md shadow-slate-900/10 border border-slate-700/40">
-                <span className="text-base font-black tracking-tighter text-amber-400">महा</span>
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-slate-950 via-slate-900 to-blue-900 flex items-center justify-center text-white shadow-md shadow-slate-900/10 border border-slate-700/40 shrink-0">
+                <span className="text-xs sm:text-base font-black tracking-tighter text-amber-400">महा</span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-base md:text-lg font-bold text-slate-950 tracking-tight flex items-center gap-1">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h1 className="text-sm sm:text-base md:text-lg font-bold text-slate-950 tracking-tight flex items-center gap-1">
                     MahaSkill <span className="text-orange-600 font-extrabold">AI</span>
                   </h1>
-                  <Badge variant="outline" className="text-[10px] py-0 px-1.5 bg-slate-50 hidden sm:inline-flex border-slate-200 text-slate-600">
+                  <Badge variant="outline" className="text-[9px] sm:text-[10px] py-0 px-1 bg-slate-50 hidden sm:inline-flex border-slate-200 text-slate-600">
                     LMI Engine
                   </Badge>
                 </div>
@@ -190,11 +195,11 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu, mobileMenuOp
                 aria-label="Switch Persona"
                 value={role}
                 onChange={(e) => setRole(e.target.value as RoleType)}
-                className="text-xs font-semibold bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="text-xs font-semibold bg-slate-100 border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 max-w-[130px] sm:max-w-[200px] truncate"
               >
                 {roleOptions.map((opt) => (
                   <option key={opt.key} value={opt.key}>
-                    👤 {opt.label}
+                    👤 {opt.shortLabel}
                   </option>
                 ))}
               </select>

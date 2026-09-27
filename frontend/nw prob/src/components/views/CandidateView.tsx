@@ -868,11 +868,11 @@ export const CandidateView: React.FC = () => {
           </div>
 
           {/* Platform & Near Match Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100 overflow-x-auto no-scrollbar pb-1 sm:flex-wrap">
             <button
               type="button"
               onClick={() => setJobPlatformFilter("All")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
                 jobPlatformFilter === "All"
                   ? "bg-slate-900 text-white shadow-2xs"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -884,7 +884,7 @@ export const CandidateView: React.FC = () => {
             <button
               type="button"
               onClick={() => setJobPlatformFilter("AlmostMatch")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 jobPlatformFilter === "AlmostMatch"
                   ? "bg-amber-600 text-white shadow-2xs"
                   : "bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100"
@@ -899,7 +899,7 @@ export const CandidateView: React.FC = () => {
             <button
               type="button"
               onClick={() => setJobPlatformFilter("LinkedIn")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 jobPlatformFilter === "LinkedIn"
                   ? "bg-[#0A66C2] text-white shadow-2xs"
                   : "bg-blue-50 text-[#0A66C2] border border-blue-200 hover:bg-blue-100"
@@ -912,7 +912,7 @@ export const CandidateView: React.FC = () => {
             <button
               type="button"
               onClick={() => setJobPlatformFilter("Naukri")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 jobPlatformFilter === "Naukri"
                   ? "bg-indigo-600 text-white shadow-2xs"
                   : "bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100"
@@ -924,7 +924,7 @@ export const CandidateView: React.FC = () => {
             <button
               type="button"
               onClick={() => setJobPlatformFilter("Indeed")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 jobPlatformFilter === "Indeed"
                   ? "bg-purple-600 text-white shadow-2xs"
                   : "bg-purple-50 text-purple-800 border border-purple-200 hover:bg-purple-100"
@@ -936,7 +936,7 @@ export const CandidateView: React.FC = () => {
             <button
               type="button"
               onClick={() => setJobPlatformFilter("Internshala")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 jobPlatformFilter === "Internshala"
                   ? "bg-emerald-600 text-white shadow-2xs"
                   : "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
@@ -1163,11 +1163,11 @@ export const CandidateView: React.FC = () => {
               {/* Radar Chart Container */}
               <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="75%" data={dynamicRadarData}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="62%" data={dynamicRadarData}>
                     <PolarGrid stroke="#e2e8f0" />
                     <PolarAngleAxis
                       dataKey="subject"
-                      tick={{ fill: "#334155", fontSize: 11, fontWeight: 600 }}
+                      tick={{ fill: "#334155", fontSize: 10, fontWeight: 600 }}
                     />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#cbd5e1" />
                     <Radar
@@ -1255,13 +1255,13 @@ export const CandidateView: React.FC = () => {
           </div>
 
           {/* Provider Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
+          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs overflow-x-auto no-scrollbar pb-1 sm:flex-wrap">
             {(["All", "Government ITI", "Private Industry Academy", "Online Bootcamp"] as const).map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setCourseFilterTab(tab)}
-                className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-lg font-medium shrink-0 whitespace-nowrap transition-all ${
                   courseFilterTab === tab
                     ? "bg-white text-slate-900 shadow-2xs font-bold"
                     : "text-slate-600 hover:text-slate-900"

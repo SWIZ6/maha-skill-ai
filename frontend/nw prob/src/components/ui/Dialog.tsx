@@ -30,7 +30,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity animate-in fade-in"
@@ -50,7 +50,7 @@ const DialogHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 }) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 p-6 border-b border-slate-100 bg-slate-50/50",
+      "flex flex-col space-y-1.5 p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50",
       className
     )}
     {...props}
@@ -62,7 +62,7 @@ const DialogTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({
   ...props
 }) => (
   <h2
-    className={cn("text-xl font-bold leading-none tracking-tight text-slate-900", className)}
+    className={cn("text-lg sm:text-xl font-bold leading-none tracking-tight text-slate-900", className)}
     {...props}
   />
 );
@@ -71,13 +71,13 @@ const DialogDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = 
   className,
   ...props
 }) => (
-  <p className={cn("text-sm text-slate-500 mt-1", className)} {...props} />
+  <p className={cn("text-xs sm:text-sm text-slate-500 mt-1", className)} {...props} />
 );
 
 const DialogContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className,
   ...props
-}) => <div className={cn("p-6 max-h-[75vh] overflow-y-auto", className)} {...props} />;
+}) => <div className={cn("p-3.5 sm:p-6 max-h-[78vh] sm:max-h-[75vh] overflow-y-auto overscroll-contain", className)} {...props} />;
 
 const DialogFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className,
@@ -85,7 +85,7 @@ const DialogFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 }) => (
   <div
     className={cn(
-      "flex items-center justify-end space-x-2 border-t border-slate-100 p-4 bg-slate-50/50",
+      "flex items-center justify-end space-x-2 border-t border-slate-100 p-3 sm:p-4 bg-slate-50/50",
       className
     )}
     {...props}

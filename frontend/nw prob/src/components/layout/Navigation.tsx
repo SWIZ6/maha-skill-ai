@@ -245,7 +245,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       )}
 
       {/* Mobile Bottom Tab Bar (Permanent on screens < 768px for fast 1-tap switching) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 pt-1 pb-safe shadow-lg">
         <div className="flex items-center justify-around">
           {navItems.map((item) => {
             const isActive = role === item.id;
@@ -253,22 +253,25 @@ export const Navigation: React.FC<NavigationProps> = ({
               <button
                 key={item.id}
                 onClick={() => setRole(item.id)}
-                className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors ${
+                className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all active:scale-95 touch-manipulation min-w-[60px] min-h-[46px] ${
                   isActive ? "text-orange-600 font-bold" : "text-slate-500 hover:text-slate-800"
                 }`}
               >
-                <div className={`p-1 rounded-md ${isActive ? "bg-orange-50 text-orange-600" : ""}`}>
+                <div className={`p-1 rounded-lg transition-colors ${isActive ? "bg-orange-100 text-orange-600" : ""}`}>
                   {React.cloneElement(item.icon as React.ReactElement, { className: "w-5 h-5" })}
                 </div>
-                <span className="text-[10px] tracking-tight mt-0.5">
+                <span className="text-[10px] tracking-tight mt-0.5 leading-none">
                   {item.id === "policymaker"
-                    ? "Govt"
+                    ? "Govt LMI"
                     : item.id === "principal"
-                    ? "Diff Engine"
+                    ? "Curriculum"
                     : item.id === "employer"
                     ? "Employer"
                     : "Student"}
                 </span>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-0.5" />
+                )}
               </button>
             );
           })}

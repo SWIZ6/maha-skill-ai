@@ -411,17 +411,17 @@ export const PolicymakerView: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
-                margin={{ top: 10, right: 20, left: 10, bottom: 20 }}
+                margin={{ top: 10, right: 10, left: -15, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: "#64748b", fontSize: 11, fontWeight: 500 }}
+                  tick={{ fill: "#64748b", fontSize: 10, fontWeight: 500 }}
                   tickLine={false}
                   axisLine={{ stroke: "#e2e8f0" }}
                 />
                 <YAxis
-                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  tick={{ fill: "#64748b", fontSize: 10 }}
                   tickLine={false}
                   axisLine={{ stroke: "#e2e8f0" }}
                   tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
@@ -495,8 +495,11 @@ export const PolicymakerView: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="flex items-center justify-between pb-2 text-[11px] text-slate-500 sm:hidden">
+            <span>Swipe horizontally to view full allocation matrix →</span>
+          </div>
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="min-w-[680px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>District & Region</TableHead>

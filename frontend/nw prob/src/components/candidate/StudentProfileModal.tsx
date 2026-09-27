@@ -315,13 +315,13 @@ export const StudentProfileModal: React.FC = () => {
             </div>
 
             {/* Category Filter Tabs */}
-            <div className="flex flex-wrap gap-1">
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 sm:flex-wrap">
               {SKILL_CATEGORY_TABS.map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => setActiveCategoryTab(tab)}
-                  className={`text-[10px] px-2 py-0.5 rounded-md font-semibold transition-all ${
+                  className={`text-[10px] px-2 py-0.5 rounded-md font-semibold shrink-0 whitespace-nowrap transition-all ${
                     activeCategoryTab === tab
                       ? "bg-purple-600 text-white shadow-2xs"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
