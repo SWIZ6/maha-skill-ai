@@ -44,7 +44,10 @@ import {
   Cpu,
   Flame,
   Search,
+  Briefcase,
+  ExternalLink,
 } from "lucide-react";
+import { StudentProfileModal } from "@/components/candidate/StudentProfileModal";
 import {
   Radar,
   RadarChart,
@@ -96,11 +99,16 @@ export const CandidateView: React.FC = () => {
     isAnalyzingCandidate,
     refreshCandidateAnalysis,
     selectedDistrict,
+    studentProfile,
+    setIsProfileModalOpen,
+    liveJobs,
   } = useApp();
 
   const [selectedCourseForModal, setSelectedCourseForModal] = useState<any | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [newSkillInput, setNewSkillInput] = useState("");
+  const [jobSearchQuery, setJobSearchQuery] = useState("");
+  const [courseFilterTab, setCourseFilterTab] = useState<string>("All");
 
   const handleAddSkill = (skill: string) => {
     const trimmed = skill.trim();
@@ -156,6 +164,22 @@ export const CandidateView: React.FC = () => {
     }
   };
 
+  const filteredJobsList = (liveJobs || []).filter((job) => {
+    if (!jobSearchQuery.trim()) return true;
+    const q = jobSearchQuery.toLowerCase();
+    return (
+      (job.job_title || "").toLowerCase().includes(q) ||
+      (job.employer || "").toLowerCase().includes(q) ||
+      (job.city || "").toLowerCase().includes(q) ||
+      (job.skills_detected || []).some((s) => s.toLowerCase().includes(q))
+    );
+  });
+
+  const displayedCourses = candidateRole.matchedCourses.filter((course) => {
+    if (courseFilterTab === "All") return true;
+    return (course.providerType || "Government ITI") === courseFilterTab;
+  });
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300 pb-12">
       {/* Header Banner */}
@@ -195,6 +219,52 @@ export const CandidateView: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {/* Student Persona Profile Summary Bar */}
+      <div className="bg-gradient-to-r from-purple-50 via-indigo-50/50 to-blue-50/50 p-4 rounded-2xl border border-purple-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-600 text-white font-bold flex items-center justify-center text-sm shadow-xs shrink-0">
+            {studentProfile.name ? studentProfile.name.charAt(0).toUpperCase() : "S"}
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-900">
+                {studentProfile.name || "Student"}
+              </h3>
+              <Badge className="bg-purple-100 text-purple-800 text-[10px] font-semibold border-purple-200">
+                {studentProfile.pursuingCourse || candidateCourse}
+              </Badge>
+              {studentProfile.isConfigured ? (
+                <Badge variant="success" className="text-[10px] py-0">
+                  Profile Configured
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] py-0 font-medium">
+                  Setup Pending
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
+              <span>📍 Preferred Cluster: <strong className="text-slate-700">{studentProfile.preferredDistrict || selectedDistrict}</strong></span>
+              <span>•</span>
+              <span>⚡ Current Skills: <strong className="text-slate-700">{candidateSkills.length} tagged</strong></span>
+              <span>•</span>
+              <span>🎯 Target Role: <strong className="text-purple-700">{candidateRole.roleTitle}</strong></span>
+            </p>
+          </div>
+        </div>
+
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setIsProfileModalOpen(true)}
+          className="text-xs bg-white hover:bg-purple-50 hover:text-purple-700 border-purple-200 shadow-2xs font-semibold whitespace-nowrap self-start md:self-center"
+        >
+          ✏️ Edit My Profile
+        </Button>
+      </div>
+
+      <StudentProfileModal />
 
       {/* Target Role Overview Banner */}
       <Card className="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white border-0 shadow-md">
@@ -622,6 +692,146 @@ export const CandidateView: React.FC = () => {
         </div>
       </div>
 
+      {/* ============================================================== */}
+      {/* 💼 LIVE JOB OPENINGS MATCHING TARGET CAREER & SKILLS            */}
+      {/* ============================================================== */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="p-2 rounded-xl bg-blue-100 text-blue-700">
+                <Briefcase className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                    Live Industry Postings For You ({filteredJobsList.length})
+                  </h3>
+                  <Badge className="bg-blue-100 text-blue-800 text-[10px] font-semibold border-blue-200">
+                    Active Hiring Signals
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Verified openings in Maharashtra matched against <strong className="text-slate-800">{candidateRole.roleTitle}</strong> & your verified skills
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-72">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
+              <input
+                type="text"
+                value={jobSearchQuery}
+                onChange={(e) => setJobSearchQuery(e.target.value)}
+                placeholder="Filter by role, company, or tool..."
+                className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Job Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredJobsList.slice(0, 6).map((job, idx) => {
+            const detected = job.skills_detected || [];
+            const matchingSkills = detected.filter((s) =>
+              candidateSkills.some((cs) => cs.toLowerCase() === s.toLowerCase())
+            );
+            const deficitSkills = detected.filter(
+              (s) => !candidateSkills.some((cs) => cs.toLowerCase() === s.toLowerCase())
+            );
+            const matchScore =
+              detected.length > 0
+                ? Math.round((matchingSkills.length / detected.length) * 100)
+                : 50;
+
+            return (
+              <Card
+                key={job.job_id || idx}
+                className="bg-white border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-sm transition-all flex flex-col justify-between"
+              >
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Badge
+                      className={`text-[10px] font-bold py-0.5 ${
+                        matchScore >= 60
+                          ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                          : matchScore >= 30
+                          ? "bg-amber-100 text-amber-800 border-amber-200"
+                          : "bg-slate-100 text-slate-700 border-slate-200"
+                      }`}
+                    >
+                      {matchScore}% Skill Match
+                    </Badge>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      📍 {job.city || "Pune"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 line-clamp-1">
+                      {job.job_title}
+                    </h4>
+                    <p className="text-xs font-medium text-slate-600 line-clamp-1 mt-0.5">
+                      {job.employer}
+                    </p>
+                    <p className="text-[11px] text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">
+                      {job.description_snippet}
+                    </p>
+                  </div>
+
+                  {/* Matching vs Deficit Skill Chips */}
+                  <div className="space-y-1.5 pt-1">
+                    {matchingSkills.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 text-[10px]">
+                        <span className="text-emerald-700 font-semibold">Matched:</span>
+                        {matchingSkills.map((s) => (
+                          <span
+                            key={s}
+                            className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded font-medium"
+                          >
+                            ✓ {s}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {deficitSkills.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 text-[10px]">
+                        <span className="text-orange-700 font-semibold">Missing:</span>
+                        {deficitSkills.slice(0, 3).map((s) => (
+                          <span
+                            key={s}
+                            className="bg-orange-50 text-orange-800 border border-orange-200 px-1.5 py-0.5 rounded font-medium"
+                          >
+                            + {s}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Apply Button */}
+                  <div className="pt-2">
+                    <a
+                      href={job.apply_link && job.apply_link !== "#" ? job.apply_link : "https://www.simplyhired.co.in"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+                    >
+                      <span>Apply on Job Board</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* 1. SKILL GAP ANALYZER & RADAR CHART (7 Cols on Desktop) */}
         <div className="lg:col-span-7 space-y-6">
@@ -725,24 +935,49 @@ export const CandidateView: React.FC = () => {
 
         {/* 2. COURSE RECOMMENDER (5 Cols on Desktop) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <GraduationCap className="w-4 h-4 text-emerald-600" />
-                Recommended Govt Courses
+                Curated Courses & Academies
               </h3>
               <p className="text-xs text-slate-500">
-                High placement probability & government stipend programs
+                Govt ITIs, Private Industry Centres & Online Bootcamps
               </p>
             </div>
-            <Badge variant="success" className="text-[11px]">
-              Govt Sponsored
-            </Badge>
+          </div>
+
+          {/* Provider Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
+            {(["All", "Government ITI", "Private Industry Academy", "Online Bootcamp"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setCourseFilterTab(tab)}
+                className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                  courseFilterTab === tab
+                    ? "bg-white text-slate-900 shadow-2xs font-bold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {tab === "All"
+                  ? `All (${candidateRole.matchedCourses.length})`
+                  : tab === "Government ITI"
+                  ? "🏛️ Govt ITI"
+                  : tab === "Private Industry Academy"
+                  ? "🏢 Industry Academy"
+                  : "🌐 Online Bootcamp"}
+              </button>
+            ))}
           </div>
 
           <div className="space-y-4">
-            {candidateRole.matchedCourses.map((course) => {
+            {displayedCourses.map((course) => {
               const isEnrolled = enrolledCourses.includes(course.id);
+              const isGovt = (course.providerType || "Government ITI") === "Government ITI";
+              const isPvt = course.providerType === "Private Industry Academy";
+              const isOnline = course.providerType === "Online Bootcamp";
+
               return (
                 <Card
                   key={course.id}
@@ -750,9 +985,24 @@ export const CandidateView: React.FC = () => {
                 >
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
-                      <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-800 border-blue-200">
-                        NSFQ Level {course.nsfqLevel}
-                      </Badge>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] font-semibold ${
+                            isGovt
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                              : isPvt
+                              ? "bg-purple-50 text-purple-800 border-purple-200"
+                              : "bg-amber-50 text-amber-800 border-amber-200"
+                          }`}
+                        >
+                          {isGovt ? "🏛️ Govt ITI" : isPvt ? "🏢 Private Academy" : "🌐 Online Bootcamp"}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-800 border-blue-200">
+                          NSFQ L{course.nsfqLevel}
+                        </Badge>
+                      </div>
+
                       <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
                         {course.placementRate}% Placement
                       </span>
@@ -770,13 +1020,15 @@ export const CandidateView: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200/80">
                       <div>
-                        <span className="text-[10px] text-slate-400 block">Duration</span>
+                        <span className="text-[10px] text-slate-400 block">Duration & Mode</span>
                         <span className="font-semibold text-slate-700">{course.duration}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-400 block">DBT Stipend</span>
+                        <span className="text-[10px] text-slate-400 block">
+                          {isGovt ? "DBT Stipend" : "Fee / Scholarship"}
+                        </span>
                         <span className="font-bold text-emerald-700 font-mono">
-                          ₹{course.stipendMonthly.toLocaleString()} / mo
+                          {course.feeStructure || (course.stipendMonthly > 0 ? `₹${course.stipendMonthly.toLocaleString()} / mo` : "Scholarship Available")}
                         </span>
                       </div>
                     </div>
@@ -797,10 +1049,22 @@ export const CandidateView: React.FC = () => {
                       ) : (
                         <Button
                           size="sm"
-                          className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5"
+                          className={`w-full text-white text-xs font-semibold flex items-center justify-center gap-1.5 ${
+                            isGovt
+                              ? "bg-slate-900 hover:bg-slate-800"
+                              : isPvt
+                              ? "bg-purple-700 hover:bg-purple-800"
+                              : "bg-blue-600 hover:bg-blue-700"
+                          }`}
                           onClick={() => handleOpenEnrollModal(course)}
                         >
-                          <span>Apply for Free Govt Seat</span>
+                          <span>
+                            {isGovt
+                              ? "Apply for Free Govt Seat"
+                              : isPvt
+                              ? "Apply for Academy Scholarship"
+                              : "Enroll in Online Bootcamp"}
+                          </span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </Button>
                       )}

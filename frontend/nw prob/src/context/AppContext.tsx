@@ -25,6 +25,17 @@ import {
 
 export type RoleType = "policymaker" | "principal" | "employer" | "candidate";
 
+export interface StudentProfile {
+  name: string;
+  pursuingCourse: string;
+  currentSkills: string[];
+  targetCareerId: string;
+  targetCareerTitle: string;
+  experienceLevel: "Fresher" | "Final Year Trainee" | "Experienced (1-2 yrs)";
+  preferredDistrict: string;
+  isConfigured: boolean;
+}
+
 interface AppContextType {
   role: RoleType;
   setRole: (role: RoleType) => void;
@@ -63,7 +74,24 @@ interface AppContextType {
   candidateAnalysis: CandidateAnalysisResult | null;
   isAnalyzingCandidate: boolean;
   refreshCandidateAnalysis: (skills?: string[], course?: string, district?: string) => Promise<void>;
+
+  // Student Persona Profile Setup
+  studentProfile: StudentProfile;
+  updateStudentProfile: (profile: Partial<StudentProfile>) => void;
+  isProfileModalOpen: boolean;
+  setIsProfileModalOpen: (open: boolean) => void;
 }
+
+const DEFAULT_STUDENT_PROFILE: StudentProfile = {
+  name: "Student",
+  pursuingCourse: "ITI Machinist",
+  currentSkills: ["Lathe", "AutoCAD"],
+  targetCareerId: "path-cnc",
+  targetCareerTitle: "Precision 5-Axis CNC & CAM Specialist",
+  experienceLevel: "Final Year Trainee",
+  preferredDistrict: "Pune",
+  isConfigured: false,
+};
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -78,6 +106,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Student Persona Profile Setup state
+  const [studentProfile, setStudentProfile] = useState<StudentProfile>(DEFAULT_STUDENT_PROFILE);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+
   // Backend state
   const [backendConnected, setBackendConnected] = useState<boolean>(false);
   const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
@@ -90,6 +122,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [candidateCourse, setCandidateCourse] = useState<string>("ITI Machinist");
   const [candidateAnalysis, setCandidateAnalysis] = useState<CandidateAnalysisResult | null>(null);
   const [isAnalyzingCandidate, setIsAnalyzingCandidate] = useState<boolean>(false);
+
+  // Load saved student profile from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("mahaskill_student_profile");
+        if (stored) {
+          const parsed = JSON.parse(stored) as StudentProfile;
+          setStudentProfile(parsed);
+          if (parsed.currentSkills?.length) setCandidateSkills(parsed.currentSkills);
+          if (parsed.pursuingCourse) setCandidateCourse(parsed.pursuingCourse);
+          if (parsed.targetCareerId) setCandidateRoleId(parsed.targetCareerId);
+          if (parsed.preferredDistrict && parsed.preferredDistrict !== "All Districts") {
+            setSelectedDistrict(parsed.preferredDistrict);
+          }
+        }
+      } catch {}
+    }
+  }, []);
+
+  const handleSetRole = (newRole: RoleType) => {
+    setRole(newRole);
+    if (newRole === "candidate" && !studentProfile.isConfigured) {
+      setIsProfileModalOpen(true);
+    }
+  };
+
+  const updateStudentProfile = (newVals: Partial<StudentProfile>) => {
+    setStudentProfile((prev) => {
+      const updated = { ...prev, ...newVals, isConfigured: true };
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("mahaskill_student_profile", JSON.stringify(updated));
+        } catch {}
+      }
+      return updated;
+    });
+
+    if (newVals.currentSkills && newVals.currentSkills.length > 0) {
+      setCandidateSkills(newVals.currentSkills);
+    }
+    if (newVals.pursuingCourse) {
+      setCandidateCourse(newVals.pursuingCourse);
+    }
+    if (newVals.targetCareerId) {
+      setCandidateRoleId(newVals.targetCareerId);
+    }
+    if (newVals.preferredDistrict && newVals.preferredDistrict !== "All Districts") {
+      setSelectedDistrict(newVals.preferredDistrict);
+    }
+    showToast("Profile personalized! Tailored jobs and curriculum gap radar updated.");
+  };
 
   const refreshCandidateAnalysis = useCallback(
     async (skills?: string[], course?: string, district?: string) => {
@@ -273,7 +357,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider
       value={{
         role,
-        setRole,
+        setRole: handleSetRole,
         selectedDistrict,
         setSelectedDistrict,
         selectedTradeDiff,
@@ -305,6 +389,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         candidateAnalysis,
         isAnalyzingCandidate,
         refreshCandidateAnalysis,
+        studentProfile,
+        updateStudentProfile,
+        isProfileModalOpen,
+        setIsProfileModalOpen,
       }}
     >
       {children}
