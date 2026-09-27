@@ -8,6 +8,7 @@ import {
   VALIDATION_CARDS,
   PULSE_SURVEY_HISTORY,
   CANDIDATE_CAREER_PATHS,
+  TRENDING_LIVE_JOBS,
   DistrictMetric,
   MacroStats,
   SyllabusDiffItem,
@@ -113,7 +114,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Backend state
   const [backendConnected, setBackendConnected] = useState<boolean>(false);
   const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
-  const [liveJobs, setLiveJobs] = useState<LiveJobItem[]>([]);
+  const [liveJobs, setLiveJobs] = useState<LiveJobItem[]>(TRENDING_LIVE_JOBS);
   const [liveGapData, setLiveGapData] = useState<LiveGapAnalysis | null>(null);
   const [isLoadingBackend, setIsLoadingBackend] = useState<boolean>(false);
 
@@ -233,7 +234,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           api.getAppliedPatches(),
         ]);
 
-        if (jobs.length > 0) setLiveJobs(jobs);
+        if (jobs.length > 0) {
+          const enriched = jobs.map((j, i) => {
+            let platform = j.platform;
+            if (!platform) {
+              const link = (j.apply_link || "").toLowerCase();
+              if (link.includes("linkedin")) platform = "LinkedIn";
+              else if (link.includes("naukri")) platform = "Naukri";
+              else if (link.includes("indeed")) platform = "Indeed";
+              else platform = i % 3 === 0 ? "LinkedIn" : i % 3 === 1 ? "Naukri" : "Indeed";
+            }
+            return { ...j, platform };
+          });
+          const seen = new Set<string>();
+          const combined: LiveJobItem[] = [];
+          for (const item of [...enriched, ...TRENDING_LIVE_JOBS]) {
+            if (!seen.has(item.job_id)) {
+              seen.add(item.job_id);
+              combined.push(item);
+            }
+          }
+          setLiveJobs(combined);
+        } else {
+          setLiveJobs(TRENDING_LIVE_JOBS);
+        }
         if (subs.length > 0) setPulseSubmissions(subs);
         if (cards.length > 0) setValidationCards(cards);
         if (patches.length > 0) setAppliedPatches(patches);

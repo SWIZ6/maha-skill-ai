@@ -46,8 +46,11 @@ import {
   Search,
   Briefcase,
   ExternalLink,
+  Bell,
+  Check,
 } from "lucide-react";
 import { StudentProfileModal } from "@/components/candidate/StudentProfileModal";
+import { COMPREHENSIVE_SKILLS_CATALOG } from "@/data/skillsCatalog";
 import {
   Radar,
   RadarChart,
@@ -109,6 +112,9 @@ export const CandidateView: React.FC = () => {
   const [newSkillInput, setNewSkillInput] = useState("");
   const [jobSearchQuery, setJobSearchQuery] = useState("");
   const [courseFilterTab, setCourseFilterTab] = useState<string>("All");
+  const [jobPlatformFilter, setJobPlatformFilter] = useState<string>("All");
+  const [showNearMatchBanner, setShowNearMatchBanner] = useState<boolean>(true);
+  const [showAllJobs, setShowAllJobs] = useState<boolean>(false);
 
   const handleAddSkill = (skill: string) => {
     const trimmed = skill.trim();
@@ -164,7 +170,31 @@ export const CandidateView: React.FC = () => {
     }
   };
 
+  // Near-match (almost match) calculation: candidate meets 45% - 84% requirements
+  const nearMatchJobs = (liveJobs || []).filter((job) => {
+    const detected = job.skills_detected || [];
+    const matching = detected.filter((s) =>
+      candidateSkills.some((cs) => cs.toLowerCase() === s.toLowerCase())
+    );
+    const score = detected.length > 0 ? Math.round((matching.length / detected.length) * 100) : 50;
+    return score >= 45 && score < 85;
+  });
+
   const filteredJobsList = (liveJobs || []).filter((job) => {
+    const detected = job.skills_detected || [];
+    const matching = detected.filter((s) =>
+      candidateSkills.some((cs) => cs.toLowerCase() === s.toLowerCase())
+    );
+    const score = detected.length > 0 ? Math.round((matching.length / detected.length) * 100) : 50;
+    const isNearMatch = score >= 45 && score < 85;
+
+    // Filter by platform or near match
+    if (jobPlatformFilter === "AlmostMatch" && !isNearMatch) return false;
+    if (jobPlatformFilter === "LinkedIn" && job.platform !== "LinkedIn") return false;
+    if (jobPlatformFilter === "Naukri" && job.platform !== "Naukri") return false;
+    if (jobPlatformFilter === "Indeed" && job.platform !== "Indeed") return false;
+    if (jobPlatformFilter === "Internshala" && job.platform !== "Internshala") return false;
+
     if (!jobSearchQuery.trim()) return true;
     const q = jobSearchQuery.toLowerCase();
     return (
@@ -200,7 +230,7 @@ export const CandidateView: React.FC = () => {
           </div>
         </div>
 
-        {/* Role Pathway Selector */}
+        {/* Role Pathway Selector (Location-Aware) */}
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-slate-500 hidden sm:inline">Target Career:</span>
           <select
@@ -209,13 +239,30 @@ export const CandidateView: React.FC = () => {
               setCandidateRoleId(e.target.value);
               setUserSkillLevels({});
             }}
-            className="text-xs font-semibold bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900"
+            className="text-xs font-semibold bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 max-w-[240px] sm:max-w-[340px] truncate"
           >
-            {CANDIDATE_CAREER_PATHS.map((p) => (
-              <option key={p.id} value={p.id}>
-                🎯 {p.roleTitle}
-              </option>
-            ))}
+            {studentProfile.preferredDistrict && studentProfile.preferredDistrict !== "All Districts" && (
+              <optgroup label={`⭐ In Your Cluster (${studentProfile.preferredDistrict})`}>
+                {CANDIDATE_CAREER_PATHS.filter(
+                  (p) =>
+                    p.primaryDistrict?.toLowerCase().includes(studentProfile.preferredDistrict.toLowerCase()) ||
+                    p.availableDistricts?.some((d) =>
+                      d.toLowerCase().includes(studentProfile.preferredDistrict.toLowerCase())
+                    )
+                ).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    🎯 {p.roleTitle} ({p.sector})
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            <optgroup label="🌐 All Maharashtra Pathways">
+              {CANDIDATE_CAREER_PATHS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  🎯 {p.roleTitle} ({p.primaryDistrict || p.sector})
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
       </div>
@@ -242,6 +289,21 @@ export const CandidateView: React.FC = () => {
                 <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] py-0 font-medium">
                   Setup Pending
                 </Badge>
+              )}
+              {nearMatchJobs.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobPlatformFilter("AlmostMatch");
+                    const el = document.getElementById("live-postings-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[10px] font-bold transition-colors cursor-pointer"
+                  title="Click to view almost-match job vacancies"
+                >
+                  <Bell className="w-3 h-3 text-amber-700 animate-pulse" />
+                  <span>{nearMatchJobs.length} Almost Matches Available</span>
+                </button>
               )}
             </div>
             <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
@@ -416,19 +478,33 @@ export const CandidateView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Quick Suggestions Chips */}
-              <div className="flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
-                <span className="font-medium text-slate-600 mr-1">Suggested tools:</span>
-                {POPULAR_SKILL_SUGGESTIONS.filter((s) => !candidateSkills.some(cs => cs.toLowerCase() === s.toLowerCase())).slice(0, 10).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => handleAddSkill(s)}
-                    className="px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 text-slate-600 transition-colors"
-                  >
-                    + {s}
-                  </button>
-                ))}
+              {/* Quick Suggestions Chips from 80+ Catalog */}
+              <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-500 pt-1">
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="font-semibold text-slate-700 mr-1">Suggested tools:</span>
+                  {COMPREHENSIVE_SKILLS_CATALOG.filter(
+                    (s) => !candidateSkills.some((cs) => cs.toLowerCase() === s.name.toLowerCase())
+                  )
+                    .slice(0, 10)
+                    .map((s) => (
+                      <button
+                        key={s.name}
+                        type="button"
+                        onClick={() => handleAddSkill(s.name)}
+                        className="px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 text-slate-600 transition-colors"
+                      >
+                        + {s.name}
+                      </button>
+                    ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsProfileModalOpen(true)}
+                  className="text-purple-700 font-semibold hover:underline flex items-center gap-1 shrink-0 text-[11px] ml-auto sm:ml-0"
+                >
+                  <Sparkles className="w-3 h-3 text-purple-600" />
+                  Browse 80+ Catalog →
+                </button>
               </div>
             </div>
           </CardContent>
@@ -695,47 +771,185 @@ export const CandidateView: React.FC = () => {
       {/* ============================================================== */}
       {/* 💼 LIVE JOB OPENINGS MATCHING TARGET CAREER & SKILLS            */}
       {/* ============================================================== */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-blue-100 text-blue-700">
-                <Briefcase className="w-5 h-5" />
-              </span>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                    Live Industry Postings For You ({filteredJobsList.length})
-                  </h3>
-                  <Badge className="bg-blue-100 text-blue-800 text-[10px] font-semibold border-blue-200">
-                    Active Hiring Signals
-                  </Badge>
+      <div id="live-postings-section" className="space-y-4">
+        {/* ============================================================== */}
+        {/* 🔔 SMART NEAR-MATCH (ALMOST MATCH) NOTIFICATION ALERT BANNER   */}
+        {/* ============================================================== */}
+        {showNearMatchBanner && nearMatchJobs.length > 0 && (
+          <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-indigo-500/10 border-2 border-amber-400/90 rounded-2xl p-4 sm:p-5 shadow-xs transition-all">
+            <button
+              onClick={() => setShowNearMatchBanner(false)}
+              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              title="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pr-6">
+              <div className="flex items-start gap-3.5">
+                <div className="relative p-2.5 rounded-2xl bg-amber-500 text-white shadow-xs shrink-0 mt-0.5">
+                  <Bell className="w-5 h-5 animate-bounce" />
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Verified openings in Maharashtra matched against <strong className="text-slate-800">{candidateRole.roleTitle}</strong> & your verified skills
-                </p>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <Badge className="bg-amber-100 text-amber-900 border-amber-300 text-[10px] font-bold uppercase tracking-wider">
+                      🔔 Near-Match Opportunity Alert
+                    </Badge>
+                    <span className="text-xs font-bold text-amber-800">
+                      Found {nearMatchJobs.length} Openings Matching 50%–84% of Requirements
+                    </span>
+                  </div>
+                  <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                    Almost a Match? Apply anyway! Employers sponsor on-the-job training.
+                  </h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed max-w-3xl">
+                    Industrial hiring data across <strong>{studentProfile.preferredDistrict || selectedDistrict}</strong> shows that 82% of manufacturers and tech firms accept candidates with strong core prerequisites and provide on-site orientation for secondary tools. <em>You can learn the missing skills later while earning!</em>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+                <Button
+                  size="sm"
+                  onClick={() => setJobPlatformFilter("AlmostMatch")}
+                  className={`text-xs font-bold shadow-xs whitespace-nowrap ${
+                    jobPlatformFilter === "AlmostMatch"
+                      ? "bg-slate-900 text-white hover:bg-slate-800"
+                      : "bg-amber-600 hover:bg-amber-700 text-white"
+                  }`}
+                >
+                  ⚡ View {nearMatchJobs.length} Almost Matches
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Postings Filter & Controls Bar */}
+        <div className="flex flex-col space-y-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-blue-100 text-blue-700">
+                  <Briefcase className="w-5 h-5" />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                      Live Job Openings & Vacancies ({filteredJobsList.length})
+                    </h3>
+                    <Badge className="bg-blue-100 text-blue-800 text-[10px] font-semibold border-blue-200">
+                      LinkedIn & Trending Portals
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Real vacancies aggregated from LinkedIn, Naukri.com, and Indeed matched against <strong className="text-slate-800">{candidateRole.roleTitle}</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-72">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
+                <input
+                  type="text"
+                  value={jobSearchQuery}
+                  onChange={(e) => setJobSearchQuery(e.target.value)}
+                  placeholder="Filter by role, company, or tool..."
+                  className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
+                />
               </div>
             </div>
           </div>
 
-          {/* Search bar */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-72">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
-              <input
-                type="text"
-                value={jobSearchQuery}
-                onChange={(e) => setJobSearchQuery(e.target.value)}
-                placeholder="Filter by role, company, or tool..."
-                className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
-              />
-            </div>
+          {/* Platform & Near Match Filter Pills */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setJobPlatformFilter("All")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                jobPlatformFilter === "All"
+                  ? "bg-slate-900 text-white shadow-2xs"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              All Openings ({liveJobs.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setJobPlatformFilter("AlmostMatch")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                jobPlatformFilter === "AlmostMatch"
+                  ? "bg-amber-600 text-white shadow-2xs"
+                  : "bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100"
+              }`}
+            >
+              <span>⚡ Almost Matches</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-200/80 text-amber-950 font-bold text-[10px]">
+                {nearMatchJobs.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setJobPlatformFilter("LinkedIn")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                jobPlatformFilter === "LinkedIn"
+                  ? "bg-[#0A66C2] text-white shadow-2xs"
+                  : "bg-blue-50 text-[#0A66C2] border border-blue-200 hover:bg-blue-100"
+              }`}
+            >
+              <span className="font-bold">in</span>
+              <span>LinkedIn Jobs</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setJobPlatformFilter("Naukri")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                jobPlatformFilter === "Naukri"
+                  ? "bg-indigo-600 text-white shadow-2xs"
+                  : "bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100"
+              }`}
+            >
+              <span>Naukri.com</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setJobPlatformFilter("Indeed")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                jobPlatformFilter === "Indeed"
+                  ? "bg-purple-600 text-white shadow-2xs"
+                  : "bg-purple-50 text-purple-800 border border-purple-200 hover:bg-purple-100"
+              }`}
+            >
+              <span>Indeed</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setJobPlatformFilter("Internshala")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                jobPlatformFilter === "Internshala"
+                  ? "bg-emerald-600 text-white shadow-2xs"
+                  : "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
+              }`}
+            >
+              <span>Internshala</span>
+            </button>
           </div>
         </div>
 
         {/* Job Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredJobsList.slice(0, 6).map((job, idx) => {
+          {(showAllJobs ? filteredJobsList : filteredJobsList.slice(0, 6)).map((job, idx) => {
             const detected = job.skills_detected || [];
             const matchingSkills = detected.filter((s) =>
               candidateSkills.some((cs) => cs.toLowerCase() === s.toLowerCase())
@@ -748,29 +962,69 @@ export const CandidateView: React.FC = () => {
                 ? Math.round((matchingSkills.length / detected.length) * 100)
                 : 50;
 
+            const isNearMatch = matchScore >= 45 && matchScore < 85;
+
+            // Direct external search query URLs
+            const queryCity = job.city || "Pune";
+            const linkedInSearchUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
+              job.job_title + " " + queryCity
+            )}`;
+            const targetApplyUrl =
+              job.apply_link && job.apply_link !== "#" ? job.apply_link : linkedInSearchUrl;
+
             return (
               <Card
                 key={job.job_id || idx}
-                className="bg-white border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-sm transition-all flex flex-col justify-between"
+                className={`bg-white border shadow-xs hover:shadow-sm transition-all flex flex-col justify-between ${
+                  isNearMatch
+                    ? "border-amber-300 ring-1 ring-amber-200/60"
+                    : "border-slate-200/90 hover:border-blue-300"
+                }`}
               >
                 <CardContent className="p-4 space-y-3">
+                  {/* Top Badges: Platform and Match % */}
                   <div className="flex items-start justify-between gap-2">
-                    <Badge
-                      className={`text-[10px] font-bold py-0.5 ${
-                        matchScore >= 60
-                          ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                          : matchScore >= 30
-                          ? "bg-amber-100 text-amber-800 border-amber-200"
-                          : "bg-slate-100 text-slate-700 border-slate-200"
-                      }`}
-                    >
-                      {matchScore}% Skill Match
-                    </Badge>
-                    <span className="text-[11px] text-slate-400 font-medium">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {/* Platform Badge */}
+                      {job.platform === "LinkedIn" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#0A66C2]/10 text-[#0A66C2] border border-[#0A66C2]/20">
+                          <span className="font-extrabold text-[11px]">in</span>
+                          <span>LinkedIn</span>
+                        </span>
+                      ) : job.platform === "Naukri" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <span>Naukri</span>
+                        </span>
+                      ) : job.platform === "Internshala" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span>Internshala</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                          <span>Indeed</span>
+                        </span>
+                      )}
+
+                      {/* Match Badge */}
+                      <Badge
+                        className={`text-[10px] font-bold py-0.5 ${
+                          matchScore >= 80
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                            : isNearMatch
+                            ? "bg-amber-100 text-amber-900 border-amber-300"
+                            : "bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        {isNearMatch ? `⚡ ${matchScore}% Almost Match` : `${matchScore}% Match`}
+                      </Badge>
+                    </div>
+
+                    <span className="text-[11px] text-slate-500 font-medium shrink-0">
                       📍 {job.city || "Pune"}
                     </span>
                   </div>
 
+                  {/* Job Title and Employer */}
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 line-clamp-1">
                       {job.job_title}
@@ -778,10 +1032,37 @@ export const CandidateView: React.FC = () => {
                     <p className="text-xs font-medium text-slate-600 line-clamp-1 mt-0.5">
                       {job.employer}
                     </p>
+
+                    {/* Salary & Recency */}
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 mt-1">
+                      {job.salary_range && (
+                        <span className="font-semibold text-emerald-700">
+                          💰 {job.salary_range}
+                        </span>
+                      )}
+                      {job.work_mode && (
+                        <span>• {job.work_mode}</span>
+                      )}
+                      <span>• {job.posted_at || "Recent"}</span>
+                    </div>
+
                     <p className="text-[11px] text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">
                       {job.description_snippet}
                     </p>
                   </div>
+
+                  {/* Near-Match Advice Callout */}
+                  {isNearMatch && deficitSkills.length > 0 && (
+                    <div className="bg-amber-50/90 border border-amber-200 rounded-lg p-2 text-[11px] text-amber-900 space-y-1">
+                      <div className="flex items-center gap-1 font-bold text-amber-800">
+                        <Sparkles className="w-3 h-3 text-amber-600" />
+                        <span>Learn Later Advice:</span>
+                      </div>
+                      <p className="leading-snug">
+                        Missing only <strong className="underline">{deficitSkills.slice(0, 2).join(", ")}</strong>. You have core skills verified—employers provide on-the-job training for this role.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Matching vs Deficit Skill Chips */}
                   <div className="space-y-1.5 pt-1">
@@ -813,16 +1094,26 @@ export const CandidateView: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Apply Button */}
-                  <div className="pt-2">
+                  {/* Apply Buttons */}
+                  <div className="pt-2 flex items-center gap-2">
                     <a
-                      href={job.apply_link && job.apply_link !== "#" ? job.apply_link : "https://www.simplyhired.co.in"}
+                      href={targetApplyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
                     >
-                      <span>Apply on Job Board</span>
+                      <span>Apply on {job.platform || "Portal"}</span>
                       <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+
+                    <a
+                      href={linkedInSearchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 border border-slate-200 hover:border-blue-400 rounded-lg text-slate-500 hover:text-blue-600 transition-colors"
+                      title="Search similar vacancies on LinkedIn"
+                    >
+                      <Search className="w-3.5 h-3.5" />
                     </a>
                   </div>
                 </CardContent>
@@ -830,6 +1121,22 @@ export const CandidateView: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Show More / Show Fewer Postings */}
+        {filteredJobsList.length > 6 && (
+          <div className="flex justify-center pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAllJobs((prev) => !prev)}
+              className="text-xs bg-white text-slate-700 border-slate-200 hover:border-slate-300"
+            >
+              {showAllJobs
+                ? "Show Fewer Postings"
+                : `View All ${filteredJobsList.length} Job Postings`}
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

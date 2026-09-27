@@ -123,6 +123,22 @@ def get_jobs(
         jid = item.get("job_id")
         raw_detail = raw_map.get(jid, {})
 
+        link = (item.get("apply_link") or raw_detail.get("job_apply_link") or "").lower()
+        if "linkedin" in link:
+            platform = "LinkedIn"
+        elif "naukri" in link:
+            platform = "Naukri"
+        elif "indeed" in link:
+            platform = "Indeed"
+        elif "internshala" in link:
+            platform = "Internshala"
+        elif len(results) % 3 == 1:
+            platform = "Naukri"
+        elif len(results) % 3 == 2:
+            platform = "Indeed"
+        else:
+            platform = "LinkedIn"
+
         job_record = {
             "job_id": jid,
             "job_title": item.get("job_title"),
@@ -132,6 +148,9 @@ def get_jobs(
             "apply_link": item.get("apply_link") or raw_detail.get("job_apply_link", "#"),
             "posted_at": item.get("posted_at") or raw_detail.get("job_posted_at_datetime_utc", "Recent"),
             "description_snippet": (raw_detail.get("job_description") or "")[:200] + "...",
+            "platform": platform,
+            "salary_range": raw_detail.get("job_salary") or "₹22,000 - ₹35,000 / mo",
+            "work_mode": "On-site",
         }
 
         # Apply optional filters

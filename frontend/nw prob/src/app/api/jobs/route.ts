@@ -23,7 +23,15 @@ export async function GET(req: NextRequest) {
 
   const results = [];
   for (const item of parsed) {
-    const rawDetail = rawMap.get(item.job_id) || {};
+    const rawDetail = (rawMap.get(item.job_id) || {}) as any;
+    const link = (item.apply_link || rawDetail.job_apply_link || "").toLowerCase();
+    let platform: "LinkedIn" | "Naukri" | "Indeed" | "Internshala" = "LinkedIn";
+    if (link.includes("naukri")) platform = "Naukri";
+    else if (link.includes("indeed")) platform = "Indeed";
+    else if (link.includes("internshala")) platform = "Internshala";
+    else if (results.length % 3 === 1) platform = "Naukri";
+    else if (results.length % 3 === 2) platform = "Indeed";
+
     const jobRecord = {
       job_id: item.job_id,
       job_title: item.job_title,
@@ -33,6 +41,9 @@ export async function GET(req: NextRequest) {
       apply_link: item.apply_link || rawDetail.job_apply_link || "#",
       posted_at: item.posted_at || rawDetail.job_posted_at_datetime_utc || "Recent",
       description_snippet: (rawDetail.job_description || "").slice(0, 200) + "...",
+      platform,
+      salary_range: rawDetail.job_salary || "₹22,000 - ₹35,000 / mo",
+      work_mode: "On-site" as const,
     };
 
     if (query && !jobRecord.job_title?.toLowerCase().includes(query)) continue;

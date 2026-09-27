@@ -21,6 +21,10 @@ export interface LiveJobItem {
   apply_link: string;
   posted_at: string;
   description_snippet: string;
+  platform?: "LinkedIn" | "Naukri" | "Indeed" | "Internshala";
+  salary_range?: string;
+  experience_required?: string;
+  work_mode?: "On-site" | "Hybrid" | "Remote";
 }
 
 export interface BackendHealth {
